@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.6.3.js"
+        integrity="sha256-nQLuAZGRRcILA+6dMBOvcRh5Pe310sBpanc6+QBmyVM=" crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+    <title>Novel</title>
+</head>
+
+<body>
+    <br>
+    <div class="container">
+        <label for="novelname" class="form-label">Chọn tên truyện</label>
+        <input class="form-control" list="datalistOptions" id="novelname" placeholder="Type to search...">
+        <datalist id="datalistOptions">
+
+        </datalist>
+    </div>
+    <br>
+    <div class="container">
+        <div class="mb-3 row">
+            <label for="startFrom" class="col-sm-2 col-form-label">Chương bắt đầu</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="startFrom">
+            </div>
+        </div>
+        <div class="mb-3 row">
+            <label for="endAt" class="col-sm-2 col-form-label">Nhập chương cuối</label>
+            <div class="col-sm-10">
+                <input type="Nhập chương cuối" class="form-control" id="endAt">
+            </div>
+        </div>
+        <div class="row">
+            <button id="getNovel" type="button" class="btn btn-primary">Nhận truyện</button>
+        </div>
+    </div>
+    <div id="app" class="container-fluid">
+
+    </div>
+    <script>
+        var id = "1GNMSd5k_xa_FqHPEMizJtpV3rcfr7UUTbCt9exiRWcU";
+        var ssURL = "https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq?sheet=";
+        var queryStr = 'Select *';
+        var query = encodeURIComponent(queryStr);
+        ssURL = ssURL + 'novelname' + '&tq=' + query;
+
+        function HandleAPI(dataset) {
+            // Define variable
+            var data = [];
+            var dict = {};
+            var keys = [];
+            // Get datasetOne cols and rows
+            var cols = dataset.table.cols;
+            var rows = dataset.table.rows;
+            // Create list key for dict
+            for (var i = 0; i < Object.keys(cols).length; i++) {
+                keys.push(cols[i].id);
+                // keys.push(cols[i].label);
+            }
+
+            // Create list value for dict
+            for (var i = 0; i < Object.keys(rows).length; i++) {
+                var value = {};
+                var el = rows[i].c;
+                for (var j = 0; j < Object.keys(keys).length; j++) {
+                    if (el[j] != null) {
+                        value[keys[j]] = el[j].v;
+                    } else {
+                        value[keys[j]] = null;
+                    }
+                }
+                data.push(value);
+            }
+            return data;
+        }
+        async function getSSTotalData(url) {
+            var data = await fetch(url);
+            data = await data.text();
+            data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
+            data.shift();
+
+            console.log(data);
+            data.forEach((item) => {
+                console.log(item)
+                $('#datalistOptions').append(`<option value="` + item.A + `">`);
+                var SStableContent = "https://docs.google.com/spreadsheets/d/" + item.B + "/gviz/tq?sheet=tablecontent&tq=" + encodeURIComponent(queryStr);
+                // getSStableContent(SStableContent);
+            })
+        }
+        async function getSStableContent(url, startFrom, endAt) {
+            var data = await fetch(url);
+            console.log(data)
+            data = await data.text();
+            data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
+            data.forEach((item) => {
+                if (item.A >= startFrom && item.A <= endAt) {
+                    getDocsData(item.B)
+                }
+            })
+
+            // console.log(data);
+        }
+        async function getDocsData(url) {
+            var data = await fetch(url);
+            data = await data.text();
+            
+            console.log(data.indexOf(`<head>`));
+            console.log(data.lastIndexOf(`</head>`));
+            data = data.replace(data.substr(data.indexOf(`<head>`), data.lastIndexOf(`</head>`)-8), '')
+            // data = data.replace(data.substr(data.indexOf(`<style type="text/css">`), data.lastIndexOf(`</style>`)-8), '')
+            console.log(data)
+            $('#app').append(data);
+            $('#banners').remove();
+            $('#contents').css('padding', 'unset');
+            $('.doc-content').css('max-width', '100%');
+            $('#contents .doc-content p').css('width', '100%');
+
+            $('#contents .doc-content .title').css('text-align', 'center');
+            $('#contents .doc-content p span').css('width', '100%');
+            $('#contents .doc-content p span').css('margin', 'auto');
+            $('style').remove()
+            $('#app').append('<br>')
+        }
+        $(document).ready(function () {
+            getSSTotalData(ssURL)
+            // getDocsData('https://docs.google.com/document/d/e/2PACX-1vRjPiyh9oIjJWLRJmAHnV-SaWmfgWEDreRtez8FzEE-RU_gJpUsGsnOe-5DaftqqZ8F58_OIX0U4929/pub')
+        })
+
+        $('#novelname').on('change', function () {
+            // console.log(this.value)
+            async function getSheetData(url, compare_pr) {
+                var data = await fetch(url);
+                data = await data.text();
+                data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
+                data.shift();
+                data.forEach((item) => {
+                    if (compare_pr == item.A) {
+                        $('#getNovel').attr('onclick', `GetNovel('` + item.B + `')`)
+                    }
+                })
+            }
+
+            getSheetData(ssURL, this.value)
+
+        })
+        function GetNovel(id) {
+            // console.log(id)
+            // console.log($('#startFrom').val())
+            // console.log($('#endAt').val())
+            $('#app').empty();
+
+            var startFrom = $('#startFrom').val();
+            var endAt = $('#endAt').val();
+
+            
+            var queryStrByChap = 'limit '+(endAt-startFrom+1)+' offset '+(startFrom-1);
+            var SStableContent = "https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq?sheet=tablecontent&tq=" + encodeURIComponent(queryStrByChap);
+            console.log("https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq?sheet=tablecontent&tq=" + queryStrByChap);
+            getSStableContent(SStableContent, startFrom, endAt)
+        }
+
+    </script>
+
+</body>
+
+</html>
