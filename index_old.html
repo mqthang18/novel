@@ -18,12 +18,11 @@
 <body>
     <br>
     <div class="container">
-        <div class="mb-3 row">
-            <label for="novelname" class="col-sm-2 col-form-label">Chọn tên truyện</label>
-            <input class="form-control" list="datalistOptions" id="novelname" placeholder="Type to search...">
-            <datalist id="datalistOptions"></datalist>
-        </div>
+        <label for="novelname" class="form-label">Chọn tên truyện</label>
+        <input class="form-control" list="datalistOptions" id="novelname" placeholder="Type to search...">
+        <datalist id="datalistOptions">
 
+        </datalist>
     </div>
     <br>
     <div class="container">
@@ -102,9 +101,9 @@
             data = await data.text();
             data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
             data.forEach((item) => {
-                // if (item.A >= startFrom && item.A <= endAt) {
+                if (item.A >= startFrom && item.A <= endAt) {
                     getDocsData(item.B)
-                // }
+                }
             })
 
             // console.log(data);
