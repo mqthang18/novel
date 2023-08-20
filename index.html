@@ -45,7 +45,8 @@
             </div>
         </div>
         <div class="row">
-            <p style="text-align: right;"><button id="getNovel" type="button" class="btn btn-primary">Nhận truyện</button></p>
+            <p style="text-align: right;"><button id="getNovel" type="button" class="btn btn-primary">Nhận
+                    truyện</button></p>
         </div>
     </div>
     <div id="app" class="container-fluid">
@@ -95,10 +96,8 @@
 
             // console.log($(data));
             data.forEach((item) => {
-                // console.log(item)
-                $('#datalistOptions').append(`<option value="` + item.A + `">`);
-                var SStableContent = "https://docs.google.com/spreadsheets/d/" + item.B + "/gviz/tq?sheet=tablecontent&tq=" + encodeURIComponent(queryStr);
-                // getSStableContent(SStableContent);
+                $('#datalistOptions').append(`<option value="${item.A}">`);
+                var SStableContent = `https://docs.google.com/spreadsheets/d/${item.B}/gviz/tq?sheet=tablecontent&tq=` + encodeURIComponent(queryStr);
             })
         }
         async function getSStableContent(url, startFrom, endAt) {
@@ -106,38 +105,47 @@
             // console.log($(data))
             data = await data.text();
             data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
-            data.forEach((item) => {
-                // if (item.A >= startFrom && item.A <= endAt) {
-                    getDocsData(item.B)
-                // }
-            })
 
-            // console.log(data);
+            // data.forEach((item) => {
+            // getDocsData(item.B)
+            // })
+            getDocs(data).then(
+                function (value) { displayer(value) },
+                function (error) { displayer(value) }
+            )
         }
-        async function getDocsData(url) {
-            var data = await fetch(url);
-            data = await data.text();
-            
-            // console.log(data.indexOf(`<head>`));
-            // console.log(data.lastIndexOf(`</head>`));
-            data = data.replace(data.substr(data.indexOf(`<head>`), data.lastIndexOf(`</head>`)-8), '')
-            // data = data.replace(data.substr(data.indexOf(`<style type="text/css">`), data.lastIndexOf(`</style>`)-8), '')
-                console.log($(data)[1].childNodes[1])
-           
-            $('#app').append($(data)[1].childNodes[1]);
 
-            // $('#app').append(data);
-            // $('#banners').remove();
-            // $('#contents').css('padding', 'unset');
-            // $('.doc-content').css('max-width', '100%');
-            // $('#contents .doc-content p').css('width', '100%');
 
-            // $('#contents .doc-content .title').css('text-align', 'center');
-            // $('#contents .doc-content p span').css('width', '100%');
-            // $('#contents .doc-content p span').css('margin', 'auto');
-            // $('style').remove()
-            // $('#app').append('<br>')
+        let displayer = async (data) => {
+            $('#app').append(data[0])
+
+            if (data[1].length > 0) {
+                getDocs(data[1]).then(
+                    function (value) { displayer(value) },
+                    function (error) { displayer(error) }
+                )
+            }
         }
+
+        let getDocs = function (listdata) {
+            return new Promise(async function (next, waiting) {
+                console.log(listdata)
+                let raw = listdata.shift();
+                console.log(raw);
+                let data = await fetch(raw.B);
+                // console.log(data.status)
+                // data = await data.text();
+                if (data.status === 200) {
+                    data = await data.text();
+                    data = data.replace(data.substr(data.indexOf(`<head>`), data.lastIndexOf(`</head>`) - 8), '');
+
+                    next([$(data)[1].childNodes[1], listdata])
+                } else {
+                    waiting("File not found!")
+                }
+            });
+        }
+
         $(document).ready(function () {
             getSSTotalData(ssURL)
             // getDocsData('https://docs.google.com/document/d/e/2PACX-1vRjPiyh9oIjJWLRJmAHnV-SaWmfgWEDreRtez8FzEE-RU_gJpUsGsnOe-5DaftqqZ8F58_OIX0U4929/pub')
@@ -149,7 +157,7 @@
                 var data = await fetch(url);
                 data = await data.text();
                 data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
-                // console.log($(data))
+
                 data.shift();
                 data.forEach((item) => {
                     if (compare_pr == item.A) {
@@ -160,16 +168,13 @@
             getSheetData(ssURL, this.value)
         })
         function GetNovel(id) {
-            // console.log(id)
-            // console.log($('#startFrom').val())
-            // console.log($('#endAt').val())
             $('#app').empty();
 
             var startFrom = $('#startFrom').val();
             var endAt = $('#endAt').val();
 
-            
-            var queryStrByChap = 'limit '+(endAt-startFrom+1)+' offset '+(startFrom-1);
+
+            var queryStrByChap = 'limit ' + (endAt - startFrom + 1) + ' offset ' + (startFrom - 1);
             var SStableContent = "https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq?sheet=tablecontent&tq=" + encodeURIComponent(queryStrByChap);
             console.log("https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq?sheet=tablecontent&tq=" + queryStrByChap);
             getSStableContent(SStableContent, startFrom, endAt)
