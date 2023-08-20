@@ -13,6 +13,12 @@
         integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
         crossorigin="anonymous"></script>
     <title>Novel</title>
+
+    <style>
+        .c3>p {
+            text-align: justify;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,7 +29,6 @@
             <input class="form-control" list="datalistOptions" id="novelname" placeholder="Type to search...">
             <datalist id="datalistOptions"></datalist>
         </div>
-
     </div>
     <br>
     <div class="container">
@@ -40,7 +45,7 @@
             </div>
         </div>
         <div class="row">
-            <button id="getNovel" type="button" class="btn btn-primary">Nhận truyện</button>
+            <p style="text-align: right;"><button id="getNovel" type="button" class="btn btn-primary">Nhận truyện</button></p>
         </div>
     </div>
     <div id="app" class="container-fluid">
@@ -88,9 +93,9 @@
             data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
             data.shift();
 
-            console.log(data);
+            // console.log($(data));
             data.forEach((item) => {
-                console.log(item)
+                // console.log(item)
                 $('#datalistOptions').append(`<option value="` + item.A + `">`);
                 var SStableContent = "https://docs.google.com/spreadsheets/d/" + item.B + "/gviz/tq?sheet=tablecontent&tq=" + encodeURIComponent(queryStr);
                 // getSStableContent(SStableContent);
@@ -98,7 +103,7 @@
         }
         async function getSStableContent(url, startFrom, endAt) {
             var data = await fetch(url);
-            console.log(data)
+            // console.log($(data))
             data = await data.text();
             data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
             data.forEach((item) => {
@@ -113,22 +118,25 @@
             var data = await fetch(url);
             data = await data.text();
             
-            console.log(data.indexOf(`<head>`));
-            console.log(data.lastIndexOf(`</head>`));
+            // console.log(data.indexOf(`<head>`));
+            // console.log(data.lastIndexOf(`</head>`));
             data = data.replace(data.substr(data.indexOf(`<head>`), data.lastIndexOf(`</head>`)-8), '')
             // data = data.replace(data.substr(data.indexOf(`<style type="text/css">`), data.lastIndexOf(`</style>`)-8), '')
-            console.log(data)
-            $('#app').append(data);
-            $('#banners').remove();
-            $('#contents').css('padding', 'unset');
-            $('.doc-content').css('max-width', '100%');
-            $('#contents .doc-content p').css('width', '100%');
+                console.log($(data)[1].childNodes[1])
+           
+            $('#app').append($(data)[1].childNodes[1]);
 
-            $('#contents .doc-content .title').css('text-align', 'center');
-            $('#contents .doc-content p span').css('width', '100%');
-            $('#contents .doc-content p span').css('margin', 'auto');
-            $('style').remove()
-            $('#app').append('<br>')
+            // $('#app').append(data);
+            // $('#banners').remove();
+            // $('#contents').css('padding', 'unset');
+            // $('.doc-content').css('max-width', '100%');
+            // $('#contents .doc-content p').css('width', '100%');
+
+            // $('#contents .doc-content .title').css('text-align', 'center');
+            // $('#contents .doc-content p span').css('width', '100%');
+            // $('#contents .doc-content p span').css('margin', 'auto');
+            // $('style').remove()
+            // $('#app').append('<br>')
         }
         $(document).ready(function () {
             getSSTotalData(ssURL)
@@ -141,6 +149,7 @@
                 var data = await fetch(url);
                 data = await data.text();
                 data = HandleAPI(JSON.parse(data.substr(47).slice(0, -2)));
+                // console.log($(data))
                 data.shift();
                 data.forEach((item) => {
                     if (compare_pr == item.A) {
@@ -148,9 +157,7 @@
                     }
                 })
             }
-
             getSheetData(ssURL, this.value)
-
         })
         function GetNovel(id) {
             // console.log(id)
